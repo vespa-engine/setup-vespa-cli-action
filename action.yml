@@ -1,0 +1,42 @@
+---
+name: "Setup Vespa CLI"
+description: "Installs the Vespa CLI tool on the runner."
+
+inputs:
+  # The version of the Vespa CLI to install.
+  version:
+    description: "The version of the Vespa CLI to install."
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Select CLI version
+      shell: bash
+      id: vespa-cli-version
+      run: |
+        if [ "${{ inputs.version }}" == "latest" ]; then
+          VESPA_CLI_VERSION=$(curl -fsSL https://api.github.com/repos/vespa-engine/vespa/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+        else
+          VESPA_CLI_VERSION="${{ inputs.version }}"
+        fi
+
+        echo "version=${VESPA_CLI_VERSION}" >> "$GITHUB_OUTPUT"
+
+    - name: Install Vespa CLI
+      shell: bash
+      env:
+        VESPA_CLI_VERSION: ${{ steps.vespa-cli-version.outputs.version }}
+        ARCH: ${{ startswith(runner.arch, 'ARM') && 'arm64' || 'amd64' }}
+      run: |
+        ARCHIVE_NAME="$(echo "vespa-cli_${VESPA_CLI_VERSION}_linux_${ARCH}" | tr '[:upper:]' '[:lower:]')"
+        DOWNLOAD_URL="https://github.com/vespa-engine/vespa/releases/download/v${VESPA_CLI_VERSION}/${ARCHIVE_NAME}.tar.gz"
+        echo "Downloading: ${DOWNLOAD_URL}"
+
+        curl -fsSL "${DOWNLOAD_URL}" | tar -zxf - -C /opt
+
+        chmod +x /opt/${ARCHIVE_NAME}/bin/*
+        ln -sf /opt/${ARCHIVE_NAME}/bin/vespa /usr/local/bin/
+
+        # Verify the installation
+        vespa version

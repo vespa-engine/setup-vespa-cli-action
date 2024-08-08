@@ -1,0 +1,38 @@
+---
+name: Test
+
+on:
+  push:
+    branches:
+      - 1.x
+  pull_request:
+    branches:
+      - 1.x
+
+jobs:
+  test:
+    strategy:
+      fail-fast: true
+      matrix:
+        vespa-cli-version: [latest, 8.371.16]
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Vespa CLI
+        uses: ./
+        with:
+          version: ${{ matrix.vespa-cli-version }}
+
+      - name: Verify Vespa CLI
+        run: vespa version
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint YAML files
+        run: yamllint --format github .

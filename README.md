@@ -25,7 +25,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install Vespa CLI
-      uses: vespa-engine/setup-vespa-cli@v1
+      uses: vespa-engine/setup-vespa-cli-action@v1
 
     - name: Do something with the vespa CLI
       run: |

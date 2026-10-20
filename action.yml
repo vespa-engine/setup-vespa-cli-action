@@ -16,7 +16,7 @@ runs:
       id: vespa-cli-version
       run: |
         if [ "${{ inputs.version }}" == "latest" ]; then
-          VESPA_CLI_VERSION=$(curl -fsSL https://api.github.com/repos/vespa-engine/vespa/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+          VESPA_CLI_VERSION=$(curl --fail --silent --show-error -L https://api.github.com/repos/vespa-engine/vespa/releases/latest | jq -r '.tag_name' | sed 's/^v//')
         else
           VESPA_CLI_VERSION="${{ inputs.version }}"
         fi
@@ -33,7 +33,7 @@ runs:
         DOWNLOAD_URL="https://github.com/vespa-engine/vespa/releases/download/v${VESPA_CLI_VERSION}/${ARCHIVE_NAME}.tar.gz"
         echo "Downloading: ${DOWNLOAD_URL}"
 
-        curl -fsSL "${DOWNLOAD_URL}" | tar -zxf - -C /opt
+        curl --fail --silent --show-error -L "${DOWNLOAD_URL}" | tar -zxf - -C /opt
 
         chmod +x /opt/${ARCHIVE_NAME}/bin/*
         ln -sf /opt/${ARCHIVE_NAME}/bin/vespa /usr/local/bin/
